@@ -1,34 +1,43 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-
-// Connect to Railway's MongoDB
-mongoose.connect(process.env.MONGODB_URL)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Could not connect to MongoDB', err));
-
-// Define a Schema for the Resilience Data
-const RecordSchema = new mongoose.Schema({
-    score: Number,
-    phase: String,
-    date: { type: Date, default: Date.now }
-});
-const Record = mongoose.model('Record', RecordSchema);
-
-// Updated Route to SAVE data
+// Research-Weighted Resilience Equation
 app.post('/calculate-resilience', async (req, res) => {
-    const { theta, D, alpha, A, beta, N, gamma, M, S, O, E } = req.body;
-    
-    const resilienceScore = (theta * D * (alpha * A + beta * N + gamma * M) * S * O) / E;
-    const phase = resilienceScore < 30 ? "Foundation" : (resilienceScore < 70 ? "Growth" : "Mastery");
+    try {
+        const { 
+            theta = 1,  // Environmental factor
+            D = 1,      // Duration/Persistence
+            A = 5,      // Biological score (Alpha weight: 0.4)
+            N = 5,      // Social score (Beta weight: 0.3)
+            M = 5,      // Strategic score (Gamma weight: 0.3)
+            S = 1,      // Support factor
+            O = 1,      // Optimism factor
+            E = 1       // Effort/Energy expenditure
+        } = req.body;
 
-    const newRecord = new Record({ score: resilienceScore, phase: phase });
-    await newRecord.save(); // This saves it to your Railway DB
+        // Weights based on recent Trajectory Research
+        const alpha = 0.4; // High weight for Bio-recovery
+        const beta = 0.3;  // Social support
+        const gamma = 0.3; // Strategic/Mental flexibility
 
-    res.json({ message: "Record Saved!", score: resilienceScore, phase: phase });
+        if (E === 0) return res.status(400).json({ error: "Effort cannot be zero" });
+
+        // The Formula: R = θ · D · (αA + βN + γM) · S · O / E
+        const R = (theta * D * (alpha * A + beta * N + gamma * M) * S * O) / E;
+
+        const phase = R < 30 ? "Foundation" : (R < 70 ? "Growth" : "Mastery");
+
+        const newRecord = new Record({ 
+            score: R.toFixed(2), 
+            phase: phase,
+            metadata: { research_version: "2026.1" } 
+        });
+        
+        await newRecord.save();
+
+        res.json({ 
+            success: true, 
+            resilience_score: R.toFixed(2), 
+            phase: phase 
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
