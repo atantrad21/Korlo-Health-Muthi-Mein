@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resilience Research Dashboard</title>
+    <title>PAO Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
-        <header class="mb-8">
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Resilience Tracker</h1>
-            <p class="text-slate-500 text-sm italic">Equation: R = θ·D·(αA+βN+γM)·S·O/E</p>
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-black text-indigo-600 tracking-tighter">PAO</h1>
+            <p class="text-slate-500 text-sm italic mt-2">Patient Analytics & Optimization</p>
         </header>
 
         <div class="space-y-4">
@@ -31,13 +31,13 @@
                 <input type="number" id="E" value="1" class="w-full mt-1 border border-slate-300 p-2 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
             </div>
             
-            <button onclick="calculate()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-indigo-600 transition-all shadow-lg active:scale-95">
-                Calculate & Save to DB
+            <button onclick="calculate()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-95">
+                Calculate & Save to PAO Database
             </button>
         </div>
 
         <div id="resultBox" class="mt-8 p-6 rounded-2xl text-center hidden transition-all border">
-            <span class="text-xs font-bold uppercase tracking-widest opacity-60">Calculated Score</span>
+            <span class="text-xs font-bold uppercase tracking-widest opacity-60">PAO Resilience Score</span>
             <div id="scoreDisplay" class="text-5xl font-black my-1">0.00</div>
             <div id="phaseDisplay" class="text-sm font-bold uppercase tracking-tighter italic"></div>
         </div>
@@ -46,7 +46,7 @@
     <script>
         async function calculate() {
             const btn = event.target;
-            btn.innerText = "Saving...";
+            btn.innerText = "Processing...";
             
             const payload = {
                 A: parseFloat(document.getElementById('A').value),
@@ -64,10 +64,8 @@
                 const res = await response.json();
 
                 const box = document.getElementById('resultBox');
-                const pDisplay = document.getElementById('phaseDisplay');
                 box.classList.remove('hidden');
                 
-                // Dynamic styling based on Phase
                 if(res.phase === "Foundation") {
                     box.className = "mt-8 p-6 rounded-2xl text-center bg-orange-50 border-orange-200 text-orange-700";
                 } else if(res.phase === "Growth") {
@@ -77,11 +75,11 @@
                 }
 
                 document.getElementById('scoreDisplay').innerText = res.resilience_score;
-                pDisplay.innerText = res.phase + " Phase";
-                btn.innerText = "Calculate & Save to DB";
+                document.getElementById('phaseDisplay').innerText = res.phase + " Phase";
+                btn.innerText = "Calculate & Save to PAO Database";
             } catch (e) {
-                alert("Error connecting to Railway server.");
-                btn.innerText = "Calculate & Save to DB";
+                alert("Connection Error.");
+                btn.innerText = "Calculate & Save";
             }
         }
     </script>
