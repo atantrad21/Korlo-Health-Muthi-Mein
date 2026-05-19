@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resilience Research Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 p-8">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold text-slate-800 mb-2">Patient Resilience Tracker</h1>
+        <p class="text-slate-500 mb-6 text-sm">Based on Research Equation: $R = θ · D · (αA + βN + γM) · S · O / E$</p>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400">Biological (A)</label>
+                <input type="number" id="A" value="5" class="w-full border p-2 rounded mb-4">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400">Social (N)</label>
+                <input type="number" id="N" value="5" class="w-full border p-2 rounded mb-4">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400">Strategic (M)</label>
+                <input type="number" id="M" value="5" class="w-full border p-2 rounded mb-4">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400">Effort (E)</label>
+                <input type="number" id="E" value="1" class="w-full border p-2 rounded mb-4">
+            </div>
+        </div>
+
+        <button onclick="calculate()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition">
+            Calculate & Save to Railway
+        </button>
+
+        <div id="result" class="mt-8 hidden p-6 rounded-lg text-center">
+            <div class="text-sm uppercase tracking-widest text-slate-500">Resilience Score</div>
+            <div id="score" class="text-5xl font-black my-2">0.00</div>
+            <div id="phase" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase"></div>
+        </div>
+    </div>
+
+    <script>
+        async function calculate() {
+            const data = {
+                A: parseFloat(document.getElementById('A').value),
+                N: parseFloat(document.getElementById('N').value),
+                M: parseFloat(document.getElementById('M').value),
+                E: parseFloat(document.getElementById('E').value),
+                theta: 1, D: 1, S: 1, O: 1 // Default research constants
+            };
+
+            // Replace with your Railway Public URL
+            const response = await fetch('/calculate-resilience', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            const display = document.getElementById('result');
+            display.classList.remove('hidden');
+            display.className = result.phase === 'Mastery' ? 'mt-8 p-6 rounded-lg text-center bg-green-100 text-green-800' : 'mt-8 p-6 rounded-lg text-center bg-blue-100 text-blue-800';
+            
+            document.getElementById('score').innerText = result.resilience_score;
+            document.getElementById('phase').innerText = result.phase + " Phase";
+        }
+    </script>
+</body>
+</html>
